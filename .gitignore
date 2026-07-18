@@ -1,6 +1,12 @@
+# macOS Finder metadata
+.DS_Store
+
 # Windows Zone.Identifier files (WSL download metadata)
 *Zone.Identifier
 
 # Environment / secrets
 .env
 .env.local
+
+# Stray top-level preview lockfile (the tracked one lives in preview/web/)
+week0_explore/preview/package-lock.json
