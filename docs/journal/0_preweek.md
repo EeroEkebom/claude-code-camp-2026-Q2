@@ -35,17 +35,13 @@ For a basic scenario that was used in examining capability - that is: logging in
 - Opus 4.8 completed the task successfully, but what was most interesting was that it agreed that it had already prior knowledge on tbaMUD from its training(!!) It commented the following: *"What I knew going in (from training): tbaMUD is a continuation of CircleMUD/DikuMUD, and "Midgaard" is the stock starting city those codebases have shipped for ~30 years. It's one of the most documented game maps in existence. So I had a general mental model: Temple of Midgaard at the center, Temple Square below it, Market Square south of that, main streets running east/west, and shops — including a bakery — hanging off those streets. I also had a rough prior that the stock bakery sells a danish, bread, and waybread. What I did not rely on memory for: I read every room description and confirmed the exits before moving. - I didn't blind-execute a memorized path."*
 
 I created also from the MUD sessions a cost estimate comparison of Haiku 4.5, Opus 4.8, and Opus 4.6:
-┌───────────────────────┬───────────┬──────────┬──────────┐
-│                       │ Haiku 4.5 │ Opus 4.8 │ Opus 4.6 │
-├───────────────────────┼───────────┼──────────┼──────────┤
-│ Output tokens         │ 91,690    │ 17,843   │ 12,069   │
-├───────────────────────┼───────────┼──────────┼──────────┤
-│ Cache-read tokens     │ 8.58M     │ 1.38M    │ 1.25M    │
-├───────────────────────┼───────────┼──────────┼──────────┤
-│ Duration              │ ~58 min   │ 2m 43s   │ ~5-6 min │
-├───────────────────────┼───────────┼──────────┼──────────┤
-│ Total cost            │ ~$1.56    │ ~$1.58   │ ~$1.47   │
-└───────────────────────┴───────────┴──────────┴──────────┘
+
+| | Haiku 4.5 | Opus 4.8 | Opus 4.6 |
+|---|---|---|---|
+| Output tokens | 91,690 | 17,843 | 12,069 |
+| Cache-read tokens | 8.58M | 1.38M | 1.25M |
+| Duration | ~58 min | 2m 43s | ~5-6 min |
+| Total cost | ~$1.56 | ~$1.58 | ~$1.47 |
 
 In this comparison Opus 4.6 was surprisingly the cheapest one, though all three were close to each other in token based cost comparison. It has to be noted though that this comparison did not take in consideration the value of time - I definitely would not to wait for an hour more to save a couple of cents - so that has in real life a big impact as well, depending on how much the time used is valued in this context.
 

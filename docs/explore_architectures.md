@@ -14,19 +14,14 @@ MORE LIKE THIS: (person a): take potato, (person b): where from?, (person a): th
 - completion took 43m, 3s with no complete success (~58 min in total, including pauses in between where waiting for user confirmations)
 
 Haiku MUD session cost estimate (by Opus 4.8):
-┌────────────────────────────┬───────────┬─────────┐
-│         Component          │  Tokens   │  Cost   │
-├────────────────────────────┼───────────┼─────────┤
-│ Input (uncached)           │     1,258 │ $0.0013 │
-├────────────────────────────┼───────────┼─────────┤
-│ Output                     │    91,690 │ $0.4585 │
-├────────────────────────────┼───────────┼─────────┤
-│ Cache write (1.25×)        │   190,452 │ $0.2381 │
-├────────────────────────────┼───────────┼─────────┤
-│ Cache read (0.1×)          │ 8,579,562 │ $0.8580 │
-├────────────────────────────┼───────────┼─────────┤
-│ Total (156 turns, ~58 min) │           │ ≈ $1.56 │
-└────────────────────────────┴───────────┴─────────┘
+
+| Component | Tokens | Cost |
+|---|---|---|
+| Input (uncached) | 1,258 | $0.0013 |
+| Output | 91,690 | $0.4585 |
+| Cache write (1.25×) | 190,452 | $0.2381 |
+| Cache read (0.1×) | 8,579,562 | $0.8580 |
+| Total (156 turns, ~58 min) | | ≈ $1.56 |
 
 ### Final report upon (incomplete) completion from Haiku 4.5:
 *(this 'final report' was reported by Haiku 4.5 at end of its work towards the task)*:
@@ -80,21 +75,14 @@ Next Step: Visit the bakery and use the look or list command to retrieve the men
 - one of the more interesting findings was that based on cost estimate, the cost was basically equal. even though Opus 4.8 was more expensive to use, it was so much faster that cost stayed the same as using Haiku 4.5, see price comparison below
 - MUD Sessions - cost estimate comparison of Haiku 4.5 and Opus 4.8 (by Opus 4.8):
 
-┌───────────────────┬────────────┬─────────────────────┐
-│                   │ Haiku 4.5  │ Opus 4.8 (gameplay) │
-├───────────────────┼────────────┼─────────────────────┤
-│ Per-token price   │ 1× (cheap) │      5× (expensive) │
-├───────────────────┼────────────┼─────────────────────┤
-│ Assistant turns   │        156 │                  48 │
-├───────────────────┼────────────┼─────────────────────┤
-│ Duration          │    ~58 min │           a few min │
-├───────────────────┼────────────┼─────────────────────┤
-│ Output tokens     │     91,690 │              17,843 │
-├───────────────────┼────────────┼─────────────────────┤
-│ Cache-read tokens │      8.58M │               1.38M │
-├───────────────────┼────────────┼─────────────────────┤
-│ Total cost        │     ~$1.56 │              ~$1.58 │
-└───────────────────┴────────────┴─────────────────────┘
+| | Haiku 4.5 | Opus 4.8 (gameplay) |
+|---|---|---|
+| Per-token price | 1× (cheap) | 5× (expensive) |
+| Assistant turns | 156 | 48 |
+| Duration | ~58 min | a few min |
+| Output tokens | 91,690 | 17,843 |
+| Cache-read tokens | 8.58M | 1.38M |
+| Total cost | ~$1.56 | ~$1.58 |
 
 
 ### Final report upon completion from Opus 4.8:
@@ -160,17 +148,13 @@ Want me to buy anything, or is there another destination you'd like me to find? 
 - there was no prior knowledge of mud or mud map
 
 MUD Sessions - cost estimate comparison of Haiku 4.5, Opus 4.8, and Opus 4.6 (table created by Opus 4.6):
-┌───────────────────────┬───────────┬──────────┬──────────┐
-│                       │ Haiku 4.5 │ Opus 4.8 │ Opus 4.6 │
-├───────────────────────┼───────────┼──────────┼──────────┤
-│ Output tokens         │ 91,690    │ 17,843   │ 12,069   │
-├───────────────────────┼───────────┼──────────┼──────────┤
-│ Cache-read tokens     │ 8.58M     │ 1.38M    │ 1.25M    │
-├───────────────────────┼───────────┼──────────┼──────────┤
-│ Duration              │ ~58 min   │ 2m 43s   │ ~5-6 min │
-├───────────────────────┼───────────┼──────────┼──────────┤
-│ Total cost            │ ~$1.56    │ ~$1.58   │ ~$1.47   │
-└───────────────────────┴───────────┴──────────┴──────────┘
+
+| | Haiku 4.5 | Opus 4.8 | Opus 4.6 |
+|---|---|---|---|
+| Output tokens | 91,690 | 17,843 | 12,069 |
+| Cache-read tokens | 8.58M | 1.38M | 1.25M |
+| Duration | ~58 min | 2m 43s | ~5-6 min |
+| Total cost | ~$1.56 | ~$1.58 | ~$1.47 |
 
 
 ### Final report upon completion from Opus 4.6:
