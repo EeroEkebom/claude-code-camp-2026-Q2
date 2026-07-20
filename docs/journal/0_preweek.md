@@ -43,7 +43,7 @@ I created also from the MUD sessions a cost estimate comparison of Haiku 4.5, Op
 | Duration | ~58 min | 2m 43s | ~5-6 min |
 | Total cost | ~$1.56 | ~$1.58 | ~$1.47 |
 
-In this comparison Opus 4.6 was surprisingly the cheapest one, though all three were close to each other in token based cost comparison. It has to be noted though that this comparison did not take in consideration the value of time - I definitely would not to wait for an hour more to save a couple of cents - so that has in real life a big impact as well, depending on how much the time used is valued in this context.
+In this comparison Opus 4.6 was surprisingly the cheapest one, though all three were close to each other in token based cost comparison. It has to be noted though that this comparison did not take in consideration the value of time - I definitely would not want to wait for an hour more to save a couple of cents - so that has in real life a big impact as well, depending on how much the time used is valued in this context.
 
 Still, the most fun I had with the "exercise 3.", the Filesystem Subagent driven by a coding harness. I had to patch some scripts because of hardcoded user name and password, in order to run two characters at the same time, but boy was it fun! I sent Dummy and Smarty to meet at the temple and have a discussion with each other, that was just hilarious!
 
