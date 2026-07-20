@@ -1,3 +1,5 @@
+# Explore Agent Architectures
+## 1. An agent file with referenced files e.g. Agent.md, @~docs/*.MD
 ### Test number 01 notes: Haiku 4.5 utilized as agent model
 - lots and lots of tries before even getting successfully through the login and into the actual game
 - pushing output too fast without understanding the context
@@ -187,3 +189,99 @@ Menu:
 | 3 | A waybread       | 72   | Unlimited |
 
 The sign also notes you can use buy to purchase and list to see prices." -->
+
+
+## 2. Agent Skills driven by main agent e.g. ~/.skills
+
+A very common way to drive specific functionality is via Agent Skills which is an open format for agents
+adopted by many coding harnesses and agent SDKs.
+
+We should create a skill that has its own script to help it connect to a MUD, we should attempt to have it
+managing its own data.
+
+It was able to complete simple goals but not the actual goals with current setup.
+
+### Technical Conclusions
+
+Agent skills do work, but we will need much more complex state, world and player management. We need auditable visibility of agent reporting on token/usage and to review player journey. We want an agent who executes actions, not asking all the time what it should do.
+
+We should probably be defining a player persona, which describes how the player likes to play, based on mix of modes, e.g. Risk Mode, Exploration Mode etc.
+
+When we enter a goal we should see a goal decomposition thinking of like making a plan for a project.
+
+
+
+## 3. Filesystem Subagent driven by a coding harness
+..
+for the MUD can you get my player back to the starting temple
+
+⏺ play-mud(Navigate MUD character back to temple)
+Done (20 tool uses · 51.4k tokens · 4m 56s)
+
+
+Your character made it back to The Temple Of Midgaard safely.
+
+Current state: Level 4 Fighter, HP 26/61, thirsty, 0 gold, empty inventory. Rest didn't heal HP — likely blocked by the thirsty status — so next priority is finding water (the Temple Square fountain is a good bet) before grinding further, since there's no gold to buy a drink either.
+
+✻ Worked for 5m 7s
+-
+
+❯ can you send my player to the bakery
+Agent "aa02ec3dcf285a7e3" had no active task; resumed from transcript in the background with your message. You'll be notified when it finishes. Output: /private/tmp/claude-501/-Users-eeroekebom-Sites-claude-code-camp-2026-Q2-week0-explore-explore-architecture-003-subagent-SDK/f8f6aaa2-3901-48d9-a2c5-77487e4ec237/tasks/aa02ec3dcf285a7e3.output
+
+Resumed the play-mud agent to walk the character from the Temple to the Bakery — it's running in the background now and I'll report back once it's done.
+
+✻ Waiting for 1 background agent to finish
+
+⏺ Agent "Navigate MUD character back to temple" finished · 2m 8s
+
+Your character is now at The Bakery.
+
+Status: Level 4 Fighter, HP 29/61 (regenerating normally now that it's standing instead of resting), still thirsty, still 0 gold — so nothing on the bakery menu (danish 7c, bread 14c, waybread 72c) can be bought yet. Next step would be finding gold or a free water source (the Temple Square fountain is untested) to clear the thirst before doing any combat.
+
+✻ Cogitated for 2m 19s
+
+※ recap: Your MUD character is now safely at the Bakery, level 4, but thirsty and out of gold. Next step is finding a water source or gold before resuming any grinding. (disable recaps in /config)
+--
+trying smarty:
+Connected successfully as smarty. I can see the class already — let me grab gender info too via who.
+
+  Ran 2 shell commands
+
+"You see nothing special about her." confirms gender — female. Now I have both details.
+
+Character: Smarty
+- Class: Sorcerer / Magic User ("Apprentice of Magic", listed as Mu in the who list) — level 1
+- Gender: Female ("You see nothing special about her.")
+
+Note: while doing this I had to patch scripts/mud_cmd.sh in 003_subagent_SDK — it was hardcoded to log in as dummy, and the login sequence was also missing a step to dismiss the MOTD "PRESS RETURN" prompt, which caused menu selections to get misaligned. It now accepts MUD_USER/MUD_PASS env var overrides and correctly enters the game.
+
+✻ Churned for 2m 20s
+
+
+## what was especially awesome about this (3a):
+❯ can you go and have a small discussion, 3 sentences from both, between dummy and smarty
+
+  Ran 1 shell command
+
+Both characters need to be connected at the same moment for tell to work — I'll run two connections concurrently with timed messages so they can actually exchange the conversation live.
+
+  Made 1 scratchpad edit +49, read 1 file, ran 2 shell commands
+
+The connections dropped early — the idle gaps between tell commands exceeded netcat's -w 2 timeout. I'll raise that and retry.
+
+  Made 2 scratchpad edits +4 -4, ran 1 shell command
+
+The conversation went through cleanly — both sides tell/receive matched up in real time. Here's the exchange between Dummy and Smarty:
+
+Dummy: "Hey Smarty, I just found the Guild of Swordsmen on the east side of town."
+Smarty: "Nice one, Dummy! I'm still stuck as a level 1 Apprentice of Magic over at the Temple."
+Dummy: "I'm level 4 now, but broke and thirsty, so I can't even train yet."
+Smarty: "Same here, zero gold and 2499 exp to my next level, so we're both grinding."
+Dummy: "Maybe once we've both got some gold we should team up and hunt together."
+Smarty: "Sounds good, meet you back at the Temple of Midgaard once I've leveled up a bit."
+
+Both characters are still connected/linkless in the game afterward (neither was sent quit) — dummy at the Guild of Swordsmen entrance, smarty at the Temple of Midgaard.
+
+✻ Crunched for 5m 3s
+

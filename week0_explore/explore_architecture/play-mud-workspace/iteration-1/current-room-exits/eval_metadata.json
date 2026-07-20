@@ -1,0 +1,10 @@
+{
+  "eval_id": 2,
+  "eval_name": "current-room-exits",
+  "prompt": "Where am I right now in the game and what exits do I have?",
+  "assertions": [
+    {"id": "room_name_present", "description": "Room name is identified"},
+    {"id": "exits_listed", "description": "At least one exit is listed"},
+    {"id": "task_completed", "description": "Task completed without abandoning"}
+  ]
+}

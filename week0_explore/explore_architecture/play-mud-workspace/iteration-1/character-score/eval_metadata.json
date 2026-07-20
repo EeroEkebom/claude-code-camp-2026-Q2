@@ -1,0 +1,11 @@
+{
+  "eval_id": 3,
+  "eval_name": "character-score",
+  "prompt": "Check my character's score and tell me my current health, mana, and move points.",
+  "assertions": [
+    {"id": "hp_present", "description": "HP (health) value reported"},
+    {"id": "mana_present", "description": "Mana value reported"},
+    {"id": "move_present", "description": "Move points value reported"},
+    {"id": "task_completed", "description": "Task completed without abandoning"}
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "eval_id": 1,
+  "eval_name": "find-bakery-menu",
+  "prompt": "Find the bakery in Midgaard and tell me what's on the menu — item names and prices.",
+  "assertions": [
+    {"id": "all_3_items", "description": "Reports all 3 menu items (danish pastry, bread, waybread)"},
+    {"id": "correct_prices", "description": "All prices correct: danish=7, bread=14, waybread=72"},
+    {"id": "route_documented", "description": "Route to bakery is documented"},
+    {"id": "task_completed", "description": "Task completed without abandoning"}
+  ]
+}

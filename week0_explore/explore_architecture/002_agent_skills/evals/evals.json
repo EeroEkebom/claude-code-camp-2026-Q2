@@ -1,0 +1,23 @@
+{
+  "skill_name": "play-mud",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Find the bakery in Midgaard and tell me what's on the menu — item names and prices.",
+      "expected_output": "The agent connects to the MUD, navigates to The Bakery, runs 'list', and reports the three items (danish pastry 7 coins, bread 14 coins, waybread 72 coins) along with the route taken.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Where am I right now in the game and what exits do I have?",
+      "expected_output": "The agent runs 'look', reads the room name and description, lists the available exits, and reports back clearly.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Check my character's score and tell me my current health, mana, and move points.",
+      "expected_output": "The agent runs 'score', reads the vitals from the output, and reports the HP/mana/move values.",
+      "files": []
+    }
+  ]
+}

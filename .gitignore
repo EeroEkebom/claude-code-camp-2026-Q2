@@ -1,6 +1,13 @@
 # macOS Finder metadata
 .DS_Store
 
+# Python bytecode cache
+__pycache__/
+*.pyc
+
+# Claude Code runtime lock files
+.claude/scheduled_tasks.lock
+
 # Windows Zone.Identifier files (WSL download metadata)
 *Zone.Identifier
 

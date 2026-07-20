@@ -1,0 +1,14 @@
+# Current Room and Exits
+
+## Room Name
+The Bakery
+
+## Room Description
+You are standing inside the small bakery. A sweet scent of danish and fine bread fills the room. The bread and Danish are arranged in fine order on the shelves, and seem to be of the finest quality. A small sign is on the counter.
+
+## NPCs / Items Present
+- An oozing green gelatinous blob is here, sucking in bits of debris.
+- The baker looks at you calmly, wiping flour from his face with one hand.
+
+## Available Exits
+- **s** (South)
