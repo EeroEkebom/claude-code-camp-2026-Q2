@@ -56,6 +56,6 @@ Still, the most fun I had with the "exercise 3.", the Filesystem Subagent driven
 
 
 ## Key Takeaway
-- Running multiple sessions simultaneously with different player characters in the MUD was a great finding! It really opened my thinking on how AI could be utilized in for example MMOs in the future, as via such approach it should be already now moderately easy to build big amonuts of semi-realistic NPC characters into games. Just now I'm thinking only games but I bet this can be taken into all kinds of industries besides gaming as well, just have to find the use cases!
+- Running multiple sessions simultaneously with different player characters in the MUD was a great finding! It really opened my thinking on how AI could be utilized in for example MMOs in the future, as via such approach it should be already now moderately easy to build big amounts of semi-realistic NPC characters into games. Just now I'm thinking only games but I bet this can be taken into all kinds of industries besides gaming as well, just have to find the use cases!
 
-- Newer generic models are suprisingly capable in themselves and they may even have training on niche areas - such as Opus 4.8 did on MUDs (I consider MUDs a niche area, not sure if that is correct though), which can drastically improve their performance on given tasks, if such training exists
+- Newer generic models are suprisingly capable in themselves and they may even have training on niche areas - such as Opus 4.8 did on MUDs (I consider MUDs a niche area, not sure if that is correct though), which can drastically improve their performance on given tasks, if such training exists.
