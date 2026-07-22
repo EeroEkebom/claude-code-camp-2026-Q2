@@ -1,0 +1,737 @@
+# Boukensha Step 0 (Config) — Ruby → Python Port Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Port `week1_baseline/ruby/00_config` (the `Boukensha::Config` + `Boukensha::Tasks` layer) into `week1_baseline/python/00_config`, faithful to the Ruby lesson's behavior and design intent, expressed idiomatically in Python.
+
+**Architecture:** A `boukensha` Python package (`Config`, `Tasks.Base`, `Tasks.Player`) mirroring the Ruby `lib/boukensha` tree one-for-one, with its own `pyproject.toml`/`uv` environment per lesson folder (matching Ruby's per-lesson `Gemfile`) and a runnable `examples/example.py` smoke test (matching Ruby's `examples/example.rb` — this curriculum has no RSpec/pytest anywhere, so the port does not introduce one either).
+
+**Tech Stack:** Python ≥3.11 (for stdlib `tomllib`), `uv` for env/dependency management, `python-dotenv` for `.env` loading. No other third-party dependencies — this preserves the Ruby lesson's "stdlib first" design constraint (`week1_baseline/ruby/iterations.md`) by swapping YAML for stdlib TOML instead of adding PyYAML.
+
+## Global Constraints
+
+- Target Python ≥3.11 (`tomllib` is stdlib from 3.11 onward). Confirmed available via `uv` even though the system `python3` here is 3.10 — `uv run` provisions the right interpreter per `pyproject.toml`'s `requires-python`.
+- Only two dependencies allowed for this lesson: `python-dotenv` (direct analog of Ruby's `dotenv` gem) and, at build time only, `hatchling`. No PyYAML, no pydantic, no requests/httpx (not needed yet — this lesson has no network calls).
+- Config format changes from YAML to TOML (`settings.yaml` → `settings.toml`). This is a deliberate deviation from Ruby, not an oversight — see Task 1.
+- No pytest/unit-test suite for this lesson — match the established Ruby pattern of a single runnable smoke-test example whose console output is eyeballed against an expected block in the README.
+- The Python port shares the **same** `.boukensha` config directory as Ruby (`week1_baseline/.boukensha`) via the `BOUKENSHA_DIR` override in `examples/example.py`, so `.env` and `prompts/player/system.md` are reused as-is; only a new `settings.toml` needs to be added alongside the existing `settings.yaml`.
+
+---
+
+## Reference files (what to port)
+
+| Ruby source (read this) | Python target (write this) | Notes |
+|---|---|---|
+| `week1_baseline/ruby/00_config/README.md` | `week1_baseline/python/00_config/README.md` | Port prose, swap YAML examples for TOML, swap `bundle exec` for `uv run`. |
+| `week1_baseline/ruby/00_config/Gemfile` | `week1_baseline/python/00_config/pyproject.toml` | `dotenv` gem → `python-dotenv` dependency. |
+| `week1_baseline/ruby/00_config/lib/boukensha.rb` | `week1_baseline/python/00_config/boukensha/__init__.py` | Top-level package exports. |
+| `week1_baseline/ruby/00_config/lib/boukensha/config.rb` | `week1_baseline/python/00_config/boukensha/config.py` | `Boukensha::Config` → `Config`. |
+| `week1_baseline/ruby/00_config/lib/boukensha/tasks/base.rb` | `week1_baseline/python/00_config/boukensha/tasks/base.py` | `Boukensha::Tasks::Base` → `Base`. |
+| `week1_baseline/ruby/00_config/lib/boukensha/tasks/player.rb` | `week1_baseline/python/00_config/boukensha/tasks/player.py` | `Boukensha::Tasks::Player` → `Player`. |
+| `week1_baseline/ruby/00_config/prompts/system.md` | `week1_baseline/python/00_config/prompts/system.md` | Byte-identical copy (plain asset, not code). |
+| `week1_baseline/ruby/00_config/examples/example.rb` | `week1_baseline/python/00_config/examples/example.py` | Same console output shape. |
+| `week1_baseline/ruby/bin/00_config` | `week1_baseline/python/bin/00_config` | `bundle exec ruby` → `uv run`. |
+| `week1_baseline/.boukensha/settings.yaml` | `week1_baseline/.boukensha/settings.toml` (**new file**, added alongside, not replacing) | TOML translation of the same schema; shared by both language ports. |
+| `week1_baseline/ruby/iterations.md` (§"0 Configuration") | — (context only) | Explains *why* the config dir/env-var design exists; no file to write, just background. |
+
+Also worth skimming for context, not porting: `week1_baseline/ruby/00_config/lib/boukensha/tasks/base.rb`'s use from `week1_baseline/ruby/00_config/examples/example.rb` shows the exact call sequence the Python `example.py` must reproduce.
+
+---
+
+## File Structure
+
+```
+week1_baseline/python/00_config/
+  pyproject.toml
+  README.md
+  .gitignore
+  boukensha/
+    __init__.py
+    config.py
+    tasks/
+      __init__.py
+      base.py
+      player.py
+  prompts/
+    system.md
+  examples/
+    example.py
+week1_baseline/python/bin/
+  00_config
+week1_baseline/.boukensha/
+  settings.toml          # new, alongside existing settings.yaml
+```
+
+- `boukensha/config.py` owns config-dir resolution, `.env` loading, and `settings.toml` parsing — one responsibility, matching Ruby's `config.rb`.
+- `boukensha/tasks/base.py` + `player.py` stay split exactly like Ruby (abstract base + one concrete task) since step `01`+ will add more task subclasses here.
+- `examples/example.py` is the only executable "test" for this lesson, matching the Ruby lesson's own testing depth — do not add a `tests/` directory for this step.
+
+---
+
+### Task 1: Shared TOML settings file
+
+**Files:**
+- Create: `week1_baseline/.boukensha/settings.toml`
+
+**Interfaces:**
+- Produces: a TOML file that, when parsed by stdlib `tomllib`, yields exactly the same nested structure as `week1_baseline/.boukensha/settings.yaml` currently yields when parsed by Ruby's `YAML.safe_load`:
+  ```python
+  {
+      "tasks": {"player": {"provider": "anthropic", "model": "claude-haiku-4-5", "prompt_override": {"system": True}}},
+      "mud": {"host": "localhost", "port": 4000, "username": "dummy", "password": "helloworld"},
+  }
+  ```
+
+- [ ] **Step 1: Write `settings.toml`**
+
+```toml
+[tasks.player]
+provider = "anthropic"
+model = "claude-haiku-4-5"
+
+[tasks.player.prompt_override]
+system = true
+
+[mud]
+host = "localhost"
+port = 4000
+username = "dummy"
+password = "helloworld"
+```
+
+- [ ] **Step 2: Verify it parses to the expected structure**
+
+Run:
+```bash
+python3 -c "import tomllib; print(tomllib.load(open('week1_baseline/.boukensha/settings.toml', 'rb')))"
+```
+Expected: `{'tasks': {'player': {'provider': 'anthropic', 'model': 'claude-haiku-4-5', 'prompt_override': {'system': True}}}, 'mud': {'host': 'localhost', 'port': 4000, 'username': 'dummy', 'password': 'helloworld'}}`
+
+(`tomllib.load` requires binary mode, and needs Python ≥3.11 — the system `python3` here is 3.10, so if that command fails with `ModuleNotFoundError: tomllib`, run it via `uv run --python 3.11 python3 -c "..."` instead.)
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add week1_baseline/.boukensha/settings.toml
+git commit -m "Add TOML settings for the Python port of boukensha config"
+```
+
+---
+
+### Task 2: Project scaffold + `Config` class
+
+**Files:**
+- Create: `week1_baseline/python/00_config/pyproject.toml`
+- Create: `week1_baseline/python/00_config/.gitignore`
+- Create: `week1_baseline/python/00_config/boukensha/__init__.py`
+- Create: `week1_baseline/python/00_config/boukensha/config.py`
+
+**Interfaces:**
+- Produces: `Config` class with:
+  - `Config.DEFAULT_DIR: Path` — class attribute, `~/.boukensha`
+  - `Config.PROMPTS_DIR: Path` — class attribute, `<lesson_root>/prompts`
+  - `Config().dir: Path`, `Config().settings: dict`
+  - `Config().tasks(name: str | None = None) -> dict | None`
+  - `Config().user_prompts_dir -> Path` (property)
+  - `Config().mud_host / mud_port / mud_username / mud_password` (properties)
+  - `Config().dig(*keys: str)`
+  - `Config().__repr__() -> str`
+
+- [ ] **Step 1: Write `pyproject.toml`**
+
+```toml
+[project]
+name = "boukensha"
+version = "0.1.0"
+description = "Boukensha step 0: configuration"
+requires-python = ">=3.11"
+dependencies = [
+    "python-dotenv>=1.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["boukensha"]
+```
+
+- [ ] **Step 2: Write `.gitignore`**
+
+```
+.venv/
+__pycache__/
+*.pyc
+```
+
+(`uv.lock` is intentionally NOT ignored — commit it, same as Ruby commits `Gemfile.lock`.)
+
+- [ ] **Step 3: Write `boukensha/config.py`**
+
+```python
+from __future__ import annotations
+
+import os
+import tomllib
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+
+class Config:
+    """The single source of truth for all settings.
+
+    Resolves the .boukensha config directory in this order:
+      1. BOUKENSHA_DIR environment variable
+      2. ~/.boukensha (default)
+    """
+
+    DEFAULT_DIR = Path.home() / ".boukensha"
+    PROMPTS_DIR = Path(__file__).resolve().parent.parent / "prompts"
+
+    def __init__(self) -> None:
+        self.dir = self._resolve_dir()
+        self._load_env()
+        self.settings = self._load_settings()
+
+    # ---------- tasks -----------------------------------------------------
+
+    def tasks(self, name: str | None = None) -> dict | None:
+        all_tasks = self.dig("tasks") or {}
+        return all_tasks.get(name) if name else all_tasks
+
+    @property
+    def user_prompts_dir(self) -> Path:
+        return self.dir / "prompts"
+
+    # ---------- MUD connection ---------------------------------------------
+
+    @property
+    def mud_host(self) -> str:
+        return self.dig("mud", "host") or "localhost"
+
+    @property
+    def mud_port(self) -> int:
+        return self.dig("mud", "port") or 4000
+
+    @property
+    def mud_username(self) -> str | None:
+        return self.dig("mud", "username")
+
+    @property
+    def mud_password(self) -> str | None:
+        return self.dig("mud", "password")
+
+    # ---------- low-level helpers -------------------------------------------
+
+    def dig(self, *keys: str):
+        node = self.settings
+        for key in keys:
+            if not isinstance(node, dict):
+                return None
+            node = node.get(key)
+        return node
+
+    def __repr__(self) -> str:
+        task_names = ",".join((self.tasks() or {}).keys())
+        return f"<Config dir={self.dir} tasks={task_names}>"
+
+    def _resolve_dir(self) -> Path:
+        raw = os.environ.get("BOUKENSHA_DIR") or str(self.DEFAULT_DIR)
+        return Path(raw).expanduser().resolve()
+
+    def _load_env(self) -> None:
+        env_file = self.dir / ".env"
+        if env_file.exists():
+            load_dotenv(env_file)
+
+    def _load_settings(self) -> dict:
+        settings_file = self.dir / "settings.toml"
+        if settings_file.exists():
+            with settings_file.open("rb") as f:
+                return tomllib.load(f)
+        return {}
+```
+
+- [ ] **Step 4: Write `boukensha/__init__.py`**
+
+```python
+from .config import Config
+
+__all__ = ["Config"]
+```
+
+- [ ] **Step 5: Verify `Config` loads against the shared settings dir**
+
+Run:
+```bash
+cd week1_baseline/python/00_config
+BOUKENSHA_DIR="$(cd ../../.boukensha && pwd)" uv run python -c "
+from boukensha import Config
+c = Config()
+print(c.dir)
+print(c.tasks())
+print(c.mud_host, c.mud_port)
+print(c)
+"
+```
+Expected: prints the resolved `.boukensha` path, the `{'player': {...}}` tasks dict, `localhost 4000`, and `<Config dir=... tasks=player>`.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add week1_baseline/python/00_config/pyproject.toml week1_baseline/python/00_config/.gitignore \
+        week1_baseline/python/00_config/boukensha/__init__.py week1_baseline/python/00_config/boukensha/config.py \
+        week1_baseline/python/00_config/uv.lock
+git commit -m "Port Boukensha::Config to Python (boukensha.Config)"
+```
+
+---
+
+### Task 3: `Tasks.Base` + `Tasks.Player`
+
+**Files:**
+- Create: `week1_baseline/python/00_config/boukensha/tasks/__init__.py`
+- Create: `week1_baseline/python/00_config/boukensha/tasks/base.py`
+- Create: `week1_baseline/python/00_config/boukensha/tasks/player.py`
+- Modify: `week1_baseline/python/00_config/boukensha/__init__.py`
+
+**Interfaces:**
+- Consumes: nothing from Task 2 directly (tasks operate on plain `dict` settings, same as Ruby — decoupled from `Config`).
+- Produces:
+  - `Base.provider(settings: dict) -> str` (raises `ValueError` if missing)
+  - `Base.model(settings: dict) -> str` (raises `ValueError` if missing)
+  - `Base.prompt_override(settings: dict, prompt: str = "system") -> bool`
+  - `Base.prompt(settings, name="system", *, user_prompts_dir=None, default_prompts_dir=None) -> str | None`
+  - `Base.system_prompt(settings, *, user_prompts_dir=None, default_prompts_dir=None) -> str | None`
+  - `Player.task_name == "player"` (class attribute, subclass of `Base`)
+
+- [ ] **Step 1: Write `boukensha/tasks/__init__.py`**
+
+```python
+```
+
+(Empty — just marks `tasks` as a package.)
+
+- [ ] **Step 2: Write `boukensha/tasks/base.py`**
+
+```python
+from __future__ import annotations
+
+from pathlib import Path
+
+
+class Base:
+    """Abstract stateless task. All behaviour is expressed as classmethods
+    that accept a settings dict — no instances are created.
+
+    Concrete subclasses set `task_name`.
+    """
+
+    task_name: str
+
+    @classmethod
+    def provider(cls, settings: dict) -> str:
+        value = cls._fetch(settings, "provider")
+        if value is None:
+            raise ValueError(f"tasks.{cls.task_name}.provider is required in settings.toml")
+        return value
+
+    @classmethod
+    def model(cls, settings: dict) -> str:
+        value = cls._fetch(settings, "model")
+        if value is None:
+            raise ValueError(f"tasks.{cls.task_name}.model is required in settings.toml")
+        return value
+
+    @classmethod
+    def prompt_override(cls, settings: dict, prompt: str = "system") -> bool:
+        node = cls._fetch(settings, "prompt_override")
+        if not isinstance(node, dict):
+            return False
+        return node.get(prompt) is True
+
+    @classmethod
+    def prompt(
+        cls,
+        settings: dict,
+        name: str = "system",
+        *,
+        user_prompts_dir: Path | None = None,
+        default_prompts_dir: Path | None = None,
+    ) -> str | None:
+        if cls.prompt_override(settings, name):
+            text = cls._read_user_prompt(name, user_prompts_dir=user_prompts_dir)
+            if text is not None:
+                return text
+        return cls._read_default_prompt(name, default_prompts_dir=default_prompts_dir)
+
+    @classmethod
+    def system_prompt(
+        cls,
+        settings: dict,
+        *,
+        user_prompts_dir: Path | None = None,
+        default_prompts_dir: Path | None = None,
+    ) -> str | None:
+        return cls.prompt(
+            settings,
+            "system",
+            user_prompts_dir=user_prompts_dir,
+            default_prompts_dir=default_prompts_dir,
+        )
+
+    @staticmethod
+    def _fetch(settings: dict, key: str):
+        return settings.get(key) if settings else None
+
+    @classmethod
+    def _read_user_prompt(cls, prompt_name: str, *, user_prompts_dir: Path | None) -> str | None:
+        if user_prompts_dir is None:
+            return None
+        return cls._read_file(Path(user_prompts_dir) / cls.task_name / f"{prompt_name}.md")
+
+    @classmethod
+    def _read_default_prompt(cls, prompt_name: str, *, default_prompts_dir: Path | None) -> str | None:
+        if default_prompts_dir is None:
+            return None
+        return cls._read_file(Path(default_prompts_dir) / f"{prompt_name}.md")
+
+    @staticmethod
+    def _read_file(path: Path) -> str | None:
+        return path.read_text().strip() if path.exists() else None
+```
+
+Note: Ruby's `Base.task_name` raises `NotImplementedError` when unset (an explicit abstract-method guard). The Python port uses a required class attribute instead — the more idiomatic Python pattern for this — and skips the runtime guard since `Base` is never instantiated or called directly in this lesson.
+
+- [ ] **Step 3: Write `boukensha/tasks/player.py`**
+
+```python
+from .base import Base
+
+
+class Player(Base):
+    task_name = "player"
+```
+
+- [ ] **Step 4: Update `boukensha/__init__.py` to export `Player`**
+
+```python
+from .config import Config
+from .tasks.player import Player
+
+__all__ = ["Config", "Player"]
+```
+
+- [ ] **Step 5: Verify**
+
+Run:
+```bash
+cd week1_baseline/python/00_config
+uv run python -c "
+from boukensha import Player
+settings = {'provider': 'anthropic', 'model': 'claude-haiku-4-5', 'prompt_override': {'system': True}}
+print(Player.task_name)
+print(Player.provider(settings))
+print(Player.model(settings))
+print(Player.prompt_override(settings, 'system'))
+"
+```
+Expected:
+```
+player
+anthropic
+claude-haiku-4-5
+True
+```
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add week1_baseline/python/00_config/boukensha/tasks week1_baseline/python/00_config/boukensha/__init__.py
+git commit -m "Port Boukensha::Tasks::Base and Player to Python"
+```
+
+---
+
+### Task 4: Default prompt asset + `example.py` smoke test
+
+**Files:**
+- Create: `week1_baseline/python/00_config/prompts/system.md`
+- Create: `week1_baseline/python/00_config/examples/example.py`
+
+**Interfaces:**
+- Consumes: `Config`, `Player` from Task 2/3 (`boukensha.Config`, `boukensha.Player`).
+- Produces: a runnable smoke test — no new interfaces for later tasks to consume (this is the terminal artifact for lesson 00).
+
+- [ ] **Step 1: Copy the default system prompt verbatim**
+
+```
+You are a MUD player assistant. Use the tools available to you to help the player explore, fight, and interact with the world.
+```
+
+Save as `week1_baseline/python/00_config/prompts/system.md` (byte-identical to `week1_baseline/ruby/00_config/prompts/system.md`).
+
+- [ ] **Step 2: Write `examples/example.py`**
+
+```python
+import os
+from pathlib import Path
+
+from boukensha import Config, Player
+
+# Override the config directory so the example works from the repo root.
+# In real usage a user's ~/.boukensha is picked up automatically.
+os.environ.setdefault(
+    "BOUKENSHA_DIR",
+    str(Path(__file__).resolve().parents[3] / ".boukensha"),
+)
+
+config = Config()
+player_settings = config.tasks("player")
+
+print("=== Boukensha Step 0: Configuration ===")
+print()
+print(f"Config dir:     {config.dir}")
+print(f"Tasks:          {', '.join((config.tasks() or {}).keys())}")
+print()
+print("-- player task --")
+print(f"Provider:       {Player.provider(player_settings)}")
+print(f"Model:          {Player.model(player_settings)}")
+print(f"Prompt override?{Player.prompt_override(player_settings, 'system')}")
+prompt = Player.system_prompt(
+    player_settings,
+    user_prompts_dir=config.user_prompts_dir,
+    default_prompts_dir=Config.PROMPTS_DIR,
+)
+print(f"System prompt:  {(prompt or '')[:60]}...")
+print()
+print(f"MUD host:       {config.mud_host}:{config.mud_port}")
+print(f"MUD user:       {config.mud_username}")
+print()
+print(f"API key set?    {os.environ.get('ANTHROPIC_API_KEY') is not None}")
+print()
+print(config)
+```
+
+- [ ] **Step 3: Run it and eyeball the output**
+
+Run:
+```bash
+cd week1_baseline/python/00_config
+uv run examples/example.py
+```
+Expected (values come from `week1_baseline/.boukensha/`, same shared dir Ruby's example reads from):
+```
+=== Boukensha Step 0: Configuration ===
+
+Config dir:     /path/to/repo/week1_baseline/.boukensha
+Tasks:          player
+
+-- player task --
+Provider:       anthropic
+Model:          claude-haiku-4-5
+Prompt override?True
+System prompt:  <first 60 chars of whichever prompt resolves>...
+
+MUD host:       localhost:4000
+MUD user:       dummy
+
+API key set?    True
+
+<Config dir=/path/to/repo/week1_baseline/.boukensha tasks=player>
+```
+
+This should structurally match `week1_baseline/ruby/00_config/examples/example.rb`'s output (same fields, same order) — the exact truncated prompt text and boolean casing (`True` vs `true`) differ by language convention, which is expected.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add week1_baseline/python/00_config/prompts week1_baseline/python/00_config/examples
+git commit -m "Add default prompt asset and example.py smoke test for Python config port"
+```
+
+---
+
+### Task 5: Runner script + README
+
+**Files:**
+- Create: `week1_baseline/python/bin/00_config`
+- Create: `week1_baseline/python/00_config/README.md`
+
+**Interfaces:**
+- Consumes: everything from Tasks 1–4 (this is the documentation + entry-point task).
+
+- [ ] **Step 1: Write `week1_baseline/python/bin/00_config`**
+
+```bash
+#!/usr/bin/env bash
+
+cd "$(dirname "$0")/../00_config"
+uv run examples/example.py
+```
+
+- [ ] **Step 2: Make it executable**
+
+```bash
+chmod +x week1_baseline/python/bin/00_config
+```
+
+- [ ] **Step 3: Write `week1_baseline/python/00_config/README.md`**
+
+```markdown
+# 00 · Configuration (Python port)
+
+Python port of `week1_baseline/ruby/00_config`. See that lesson's README for
+the full design rationale — this file only calls out where the Python port
+differs.
+
+We want to be able to manage all configuration from an external file, e.g.
+`~/.boukensha/settings.toml`. A dedicated `Config` class handles it. As we add
+configuration in each iteration we will keep updating the schema and class.
+We can hardcode defaults but we should not hardcode configurable values.
+
+Configuration is organised by **task** — a role in the agentic loop bound to
+its own LLM. week1_baseline only drives a single `player` task (the main
+loop); a more advanced loop will assign different LLMs to different tasks.
+
+## Design Considerations
+
+We want to use the standard library as much as possible, avoiding third-party
+packages. The one necessary addition is `python-dotenv`, to load `.env`
+files — the direct Python analog of Ruby's `dotenv` gem.
+
+**Format difference from Ruby:** Ruby's stdlib ships a YAML parser, so the
+Ruby lesson uses `settings.yaml`. Python's stdlib has no YAML parser but does
+ship `tomllib` (read-only TOML, Python ≥3.11) — so the Python port uses
+`settings.toml` instead of adding a third-party YAML dependency. Both files
+live side by side in the same shared `.boukensha/` directory; Ruby reads
+`settings.yaml`, Python reads `settings.toml`.
+
+## Code Changes
+
+| File | Purpose |
+|------|---------|
+| `boukensha/config.py` | `Config` class |
+| `boukensha/tasks/base.py` | abstract `Base` (provider/model + prompt resolution) |
+| `boukensha/tasks/player.py` | concrete `Player` (the main loop) |
+| `boukensha/__init__.py` | top-level package exports |
+| `prompts/system.md` | default system prompt shipped with the package |
+| `examples/example.py` | runnable smoke test |
+
+## Config directory resolution
+
+Same as Ruby — the class looks for a `.boukensha/` directory in this order:
+
+1. **`BOUKENSHA_DIR` env var**
+2. **`~/.boukensha`** — the default location for a real install.
+
+## Config directory structure
+
+```
+.boukensha/
+  .env                 # credentials, e.g. LLM API keys (never committed)
+  settings.toml        # all non-secret settings
+  prompts/
+    <task>/
+      system.md        # per-task override for the default system prompt (optional)
+```
+
+## Tasks
+
+`Base` is an abstract stateless class — no instances are created, everything
+is a classmethod taking a `settings` dict. Concrete subclasses set
+`task_name`. For now only `Player` exists.
+
+```python
+from boukensha import Config, Player
+
+config = Config()
+player_settings = config.tasks("player")
+
+Player.provider(player_settings)
+Player.system_prompt(
+    player_settings,
+    user_prompts_dir=config.user_prompts_dir,
+    default_prompts_dir=Config.PROMPTS_DIR,
+)
+```
+
+## System prompt resolution
+
+Per task, `Player.system_prompt` is resolved in this order:
+
+1. **`.boukensha/prompts/<task>/system.md`** — used when the task's
+   `prompt_override.system` is `true` and the file exists.
+2. **`prompts/system.md`** — the default system prompt shipped with the package.
+
+## Configuration Schema
+
+```toml
+[tasks.player]
+provider = "anthropic"       # provider name (string)
+model = "claude-haiku-4-5"
+
+[tasks.player.prompt_override]
+system = true
+
+[mud]
+host = "localhost"
+port = 4000
+username = "dummy"
+password = "helloworld"
+```
+
+## Run Example
+
+```bash
+uv run --project week1_baseline/python/00_config examples/example.py
+# or:
+./week1_baseline/python/bin/00_config
+```
+
+Expected output (values from your `.boukensha/`):
+
+```
+=== Boukensha Step 0: Configuration ===
+
+Config dir:     /home/you/Sites/claude-code-camp-2026-Q2/week1_baseline/.boukensha
+Tasks:          player
+
+-- player task --
+Provider:       anthropic
+Model:          claude-haiku-4-5
+Prompt override?True
+System prompt:  You are a MUD player assistant. Use the tools available to y...
+
+MUD host:       localhost:4000
+MUD user:       dummy
+
+API key set?    True
+
+<Config dir=/home/you/Sites/claude-code-camp-2026-Q2/week1_baseline/.boukensha tasks=player>
+```
+```
+
+- [ ] **Step 4: Run the bin script end-to-end from repo root**
+
+Run:
+```bash
+./week1_baseline/python/bin/00_config
+```
+Expected: same output as Task 4 Step 3.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add week1_baseline/python/bin/00_config week1_baseline/python/00_config/README.md
+git commit -m "Add Python 00_config bin runner and README"
+```
+
+---
+
+## Open follow-ups for later lesson plans (not in scope here)
+
+- `01_struct_skeleton` will need `Tool`, `Message`, `Context` data containers ported next — likely Python `dataclasses`, mirroring Ruby's plain `Struct`s.
+- `iterations.md` flags that step 9 (`09_global_executable`) "was skipped for Python" and step 10/11 needed real design changes (MCP instead of direct MudManager binding; Textual instead of BubbleTea for the TUI) — those plan files will need explicit ADR-style notes, not a straight port.
