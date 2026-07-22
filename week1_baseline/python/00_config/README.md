@@ -103,7 +103,8 @@ password = "helloworld"
 ## Run Example
 
 ```bash
-uv run --project week1_baseline/python/00_config examples/example.py
+uv run --project week1_baseline/python/00_config \
+  week1_baseline/python/00_config/examples/example.py
 # or:
 ./week1_baseline/python/bin/00_config
 ```
@@ -120,7 +121,7 @@ Tasks:          player
 Provider:       anthropic
 Model:          claude-haiku-4-5
 Prompt override?True
-System prompt:  You are a MUD player assistant. Use the tools available to y...
+System prompt:  You are a MUD Journey Player Agent.
 
 MUD host:       localhost:4000
 MUD user:       dummy
