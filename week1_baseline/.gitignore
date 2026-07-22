@@ -1,0 +1,3 @@
+# Broken duplicate of ruby/bin/00_config — relative paths only work
+# when the script lives under ruby/bin, not here.
+/bin/
