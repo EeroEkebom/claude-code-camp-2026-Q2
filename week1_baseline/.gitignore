@@ -1,3 +1,4 @@
-# Broken duplicate of ruby/bin/00_config — relative paths only work
-# when the script lives under ruby/bin, not here.
-/bin/
+# Runner scripts live under /bin/<language>/ (e.g. /bin/ruby/00_config).
+# Ignore anything dropped directly in /bin/ outside a language subdir.
+/bin/*
+!/bin/ruby/
