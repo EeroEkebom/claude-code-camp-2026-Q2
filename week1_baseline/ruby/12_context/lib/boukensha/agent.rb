@@ -58,7 +58,7 @@ module Boukensha
           handle_tool_calls(parsed[:content], response)
         else
           text = extract_text(parsed[:content])
-          @logger.response(text: text, usage: response["usage"], stop_reason: parsed[:stop_reason])
+          @logger.response(text: text, usage: normalized_usage(response), stop_reason: parsed[:stop_reason])
           @logger.turn_end(reason: "completed", iterations: @iteration, tokens: @context.turn_tokens)
           @context.add_message(:assistant, text)
           return text
@@ -86,9 +86,36 @@ module Boukensha
     # pressure). The trigger is evaluated on pre-wrap-up spend; the reported
     # total includes the wind-down call too.
     def record_usage(response)
-      usage = response["usage"] || {}
+      usage = normalized_usage(response)
       @context.add_turn_tokens(usage["input_tokens"], usage["output_tokens"])
       @context.update_tokens(usage["input_tokens"].to_i)
+    end
+
+    # Providers report usage under different raw-response shapes:
+    #   Anthropic / OpenAI — top-level "usage": {"input_tokens", "output_tokens"}
+    #   Gemini             — top-level "usageMetadata": {"promptTokenCount", "candidatesTokenCount"}
+    #   Ollama (local)     — top-level "prompt_eval_count" / "eval_count", no wrapper
+    # Normalize all of these to a common {"input_tokens" => n, "output_tokens" => n}
+    # shape so record_usage's math and the logger's persisted usage chip (which
+    # log_viz reads back out) work identically for every backend.
+    def normalized_usage(response)
+      return response["usage"] if response["usage"]
+
+      if (meta = response["usageMetadata"])
+        return {
+          "input_tokens"  => meta["promptTokenCount"],
+          "output_tokens" => meta["candidatesTokenCount"]
+        }
+      end
+
+      if response.key?("prompt_eval_count") || response.key?("eval_count")
+        return {
+          "input_tokens"  => response["prompt_eval_count"],
+          "output_tokens" => response["eval_count"]
+        }
+      end
+
+      {}
     end
 
     def compact_if_needed
@@ -111,7 +138,7 @@ module Boukensha
       text        = extract_text(parsed_wrap[:content])
       text        = fallback_message(reason) if text.strip.empty?
       record_usage(response)
-      @logger.response(text: text, usage: response["usage"], stop_reason: parsed_wrap[:stop_reason])
+      @logger.response(text: text, usage: normalized_usage(response), stop_reason: parsed_wrap[:stop_reason])
       @logger.turn_end(reason: reason, iterations: @iteration, tokens: @context.turn_tokens)
       @context.add_message(:assistant, text)
       text
@@ -154,7 +181,7 @@ module Boukensha
       # the placeholder below owns the turn's usage chip), then the placeholder.
       preamble = extract_text(content)
       @logger.plan(text: preamble) unless preamble.strip.empty?
-      @logger.response(text: "(tool use — #{tool_calls.size} call#{'s' if tool_calls.size != 1})", usage: response["usage"], stop_reason: "tool_use")
+      @logger.response(text: "(tool use — #{tool_calls.size} call#{'s' if tool_calls.size != 1})", usage: normalized_usage(response), stop_reason: "tool_use")
 
       @context.add_message(:assistant, content)
 
